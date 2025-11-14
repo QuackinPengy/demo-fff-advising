@@ -1,0 +1,17 @@
+/* Color Scheme */
+:root {
+    --sky-blue: #87BFCA;
+    --dark-blue: #12618C;
+    --rose: #E37D79;
+    --light-rose: #F5DAD6;
+
+    --forest-dark: #0b3d2e;
+    --forest-mid: #165a36;
+    --forest-canopy: #2d7a4b;
+    --fern-green: #3f8f57;
+    --moss-green: #68b984;
+    --sage-green: #d9edd8;
+    --sage-green-soft: #e6f4ea;
+    --dew-white: #f4f9f2;
+    --wildflower: #f2e9d6;
+}
