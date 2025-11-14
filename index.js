@@ -204,6 +204,7 @@ function setupImageErrorHandling() {
 function setupContactForm() {
   const form = document.querySelector(".contact__form");
   const response = document.querySelector(".contact__response");
+  const contactEndpoint = 'https://prod-30.northcentralus.logic.azure.com:443/workflows/e5456d50a1614645ba5d7aaca707b921/triggers/When_an_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_an_HTTP_request_is_received%2Frun&sv=1.0&sig=eWRX3gPkJ54U3vIPdJ42Eya_F45qBknSGXegWaRUrOQ';
 
   if (!form || !response) {
     return;
@@ -232,33 +233,46 @@ function setupContactForm() {
 
     // Show loading state
     const submitButton = form.querySelector('sl-button[type="submit"]');
-    const originalText = submitButton.textContent;
-    submitButton.textContent = "Sending...";
-    submitButton.setAttribute("disabled", "");
+    const originalText = submitButton?.textContent ?? "";
+    if (submitButton) {
+      submitButton.textContent = "Sending...";
+      submitButton.setAttribute("disabled", "");
+    }
 
     try {
-      // For now, create a mailto link since there's no backend
-      const subject = encodeURIComponent(`FFF Advising Contact: ${data.name}`);
-      const body = encodeURIComponent(`Name: ${data.name}\nEmail: ${data.email}\n\nMessage:\n${data.message}`);
-      const mailtoLink = `mailto:hello@fffadvising.com?subject=${subject}&body=${body}`;
+      const payload = {
+        name: data.name.trim(),
+        email: data.email.trim(),
+        message: data.message.trim(),
+        submittedAt: new Date().toISOString()
+      };
 
-      // Open mailto link
-      window.location.href = mailtoLink;
+      const fetchResponse = await fetch(contactEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
 
-      // Show success message
+      if (fetchResponse.status !== 200) {
+        const errorText = await fetchResponse.text().catch(() => "");
+        throw new Error(errorText || `Unexpected response status: ${fetchResponse.status}`);
+      }
+
       response.textContent = "Thank you! Your message has been sent. Expect a reply within one business day.";
       response.style.color = "var(--moss-green)";
-
-      // Reset form
       form.reset();
-
     } catch (error) {
+      console.error("Contact form submission failed:", error);
       response.textContent = "There was an error sending your message. Please try again or contact us directly.";
       response.style.color = "var(--rose)";
     } finally {
       // Reset button
-      submitButton.textContent = originalText;
-      submitButton.removeAttribute("disabled");
+      if (submitButton) {
+        submitButton.textContent = originalText;
+        submitButton.removeAttribute("disabled");
+      }
     }
   });
 }
